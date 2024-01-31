@@ -1,12 +1,13 @@
 import os
 import torch
 import torchvision
+from torch.utils.data import DataLoader, random_split
 import torchvision.transforms as transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data.dataset import Subset
 from PIL import Image
 from torchvision import datasets
-
+from utils.utils import set_seed
 import numpy as np
 
 
@@ -30,18 +31,23 @@ def get_loaders(name="", batch_size=100, **kwargs):
 def cifar10(
     data_root="../data",
     batch_size=100,
-    random_seed=508,
+    random_seed=42,
     num_workers=2,
     aug_level=1,
     train_no_aug=False,
 ):
+    mean = (0.4914, 0.4822, 0.4465)
+    std = (0.2023, 0.1994, 0.2010)
+    
+    set_seed(random_seed)
+    
     if train_no_aug:
         # when extracting features
         print("No aug.")
         transform_train = transforms.Compose(
             [
                 transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)), #(0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                transforms.Normalize(mean, std), 
             ]
         )
     else:
@@ -50,49 +56,35 @@ def cifar10(
                 transforms.RandomCrop(32, padding=4),
                 transforms.RandomHorizontalFlip(),
                 transforms.ToTensor(),
-                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+                transforms.Normalize(mean, std),
             ]
         )
 
     transform_test = transforms.Compose(
         [
             transforms.ToTensor(),
-            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            transforms.Normalize(mean, std),
         ]
     )
 
-    # train. val split
-    trainset = torchvision.datasets.CIFAR10(
-        root=data_root, train=True, download=True, transform=transform_train
-    )
+    
+    full_trainset = torchvision.datasets.CIFAR10(
+        root=data_root, train=True, download=False, transform=transform_train)
+        
+    train_size = int((0.9) * len(full_trainset))
+    val_size = len(full_trainset) - train_size
+    
+    trainset, valset = random_split(full_trainset, [train_size, val_size])
 
-    valset = torchvision.datasets.CIFAR10(
-        root=data_root, train=True, download=True, transform=transform_test
-    )
-
-    indices = list(range(50000))
-    split = 5000
-    np.random.seed(random_seed)
-    np.random.shuffle(indices)
-
-    train_idx, valid_idx = indices[split:], indices[:split]
-    train_sampler = SubsetRandomSampler(train_idx)
-    val_sampler = SubsetRandomSampler(valid_idx)
-
-    train_loader = torch.utils.data.DataLoader(
-        trainset, batch_size=batch_size, sampler=train_sampler, num_workers=num_workers
-    )
-    valid_loader = torch.utils.data.DataLoader(
-        valset, batch_size=batch_size, sampler=val_sampler, num_workers=num_workers
-    )
+    train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    val_loader = DataLoader(valset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
     # test loader
     testset = torchvision.datasets.CIFAR10(
-        root=data_root, train=False, download=True, transform=transform_test
+        root=data_root, train=False, download=False, transform=transform_test
     )
-    test_loader = torch.utils.data.DataLoader(
-        testset, batch_size=batch_size, shuffle=False, num_workers=num_workers
-    )
+    test_loader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+            
     classes = (
         "plane",
         "car",
@@ -106,7 +98,18 @@ def cifar10(
         "truck",
     )
 
-    return train_loader, valid_loader, test_loader
+    for images, labels in val_loader:
+        i = 0
+        print(images[i,:,:,:])
+        break  # Stoppen Sie nach dem ersten Batch
+        
+    for images, labels in test_loader:
+        i = 0
+        print(images[i,:,:,:])
+        break  # Stoppen Sie nach dem ersten Batch
+        
+        
+    return train_loader, val_loader, test_loader
 
 
 def cifar10c(data_root="../data", batch_size=100, cname="natural", severity=1):
@@ -139,7 +142,7 @@ def cifar10c(data_root="../data", batch_size=100, cname="natural", severity=1):
 def cifar100(
     data_root="../data",
     batch_size=100,
-    random_seed=508,
+    random_seed=42,
     num_workers=2,
     train_no_aug=False,
 ):

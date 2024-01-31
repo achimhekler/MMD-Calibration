@@ -1,5 +1,5 @@
 corruption_names = [
-    "natural",
+    #"natural",
     "gaussian_noise",
     "shot_noise",
     "speckle_noise",

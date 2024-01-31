@@ -26,6 +26,8 @@ from utils.io_utils import save_pickle, load_pickle
 from utils.get_models import FeatureExtractor
 from density_aware_calib import KNNScorer
 
+from utils.utils import set_seed
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def extract_features_and_save_ood_scores(
@@ -500,7 +502,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_multithreading", type=str2bool, default=False)
     parser.add_argument("--train_data_ratio", type=float, default=1.0)
     parser.add_argument("--save_batch_interval", type=int, default=100)
-    parser.add_argument("--exp_id", type=string, default='')
+    parser.add_argument("--exp_id", type=str, default='')
     parser.add_argument(
         "--test_data_type", type=str, nargs="*", 
         default=[],
@@ -549,6 +551,8 @@ if __name__ == "__main__":
         batch_size=args.batch_size,
         train_no_aug=True,  # important
     )
+    
+    
     root_dir = args.save_outputs_root_dir + args.exp_id
     args.save_outputs_dir = os.path.join(root_dir, f"{args.dataset}/{args.model_name}")
     os.makedirs(args.save_outputs_dir, exist_ok=True)
@@ -655,7 +659,7 @@ if __name__ == "__main__":
                 ood_scorer=ood_scorer,
                 save_batch_interval=args.save_batch_interval,
             )
-            
+
             extract_features_for_mmd_scores(
                 args,
                 cname_s,

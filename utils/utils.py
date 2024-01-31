@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 def softmax(x):
     max = np.max(
@@ -32,3 +33,8 @@ def label2onehot(label, n_class=None):
     if len(label.shape) == 2 and label.shape[1] == 1:
         label = to_onehot(label[:, 0], n_class)
     return label
+
+def set_seed(seed = 42):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    torch.cuda.manual_seed(seed)
