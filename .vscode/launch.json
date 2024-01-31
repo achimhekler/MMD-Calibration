@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: extract_feature_and_knn_score.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/extract_feature_and_knn_score.py",
+            "args": [
+                "--data_root", "data",
+                "--batch_size", "128",
+                "--dataset", "cifar10",
+                "--model_name", "ViT",
+                "--model_path", "classifier_ckpts/cifar10/ViT600.pth",
+                "--save_only_ood_scores", "True",
+                "--no_state_dict", "True",
+                "--number_tta", "9",
+                "--use_multithreading", "True",
+                "--top_k", "50",
+//              "--test_data_type", "brightness"
+            ]
+        }
+    ]
+}
